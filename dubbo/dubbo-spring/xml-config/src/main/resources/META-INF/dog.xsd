@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema
+
+        xmlns="http://www.gentryhuang.site/schema/dog"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        xmlns:beans="http://www.springframework.org/schema/beans"
+        targetNamespace="http://www.gentryhuang.site/schema/dog"
+        elementFormDefault="qualified"
+        attributeFormDefault="unqualified">
+
+    <!-- 引入Spring bean 命名空间-->
+    <xsd:import namespace="http://www.springframework.org/schema/beans"/>
+
+    <xsd:element name="dog">
+        <xsd:complexType>
+            <xsd:complexContent>
+                <xsd:extension base="beans:identifiedType">
+                    <xsd:attribute name="name" type="xsd:string"/>
+                    <xsd:attribute name="food" type="xsd:string"/>
+                </xsd:extension>
+            </xsd:complexContent>
+        </xsd:complexType>
+    </xsd:element>
+
+
+</xsd:schema>

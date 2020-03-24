@@ -9,7 +9,7 @@ import org.apache.dubbo.common.extension.Adaptive;
  * @author shunhua
  * @date 2019-10-09
  */
-@Adaptive
+//@Adaptive
 public class AdaptiveCar implements ICarService {
 
     @Override

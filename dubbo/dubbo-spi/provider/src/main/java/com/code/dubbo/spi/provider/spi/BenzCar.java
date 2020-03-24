@@ -36,5 +36,6 @@ public class BenzCar implements ICarService{
     @Override
     public void getColor() {
        //...
+        System.out.println("普通方法");
     }
 }

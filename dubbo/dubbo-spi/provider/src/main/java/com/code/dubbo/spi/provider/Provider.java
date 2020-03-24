@@ -20,8 +20,6 @@ public class Provider {
 
         // 按任意键退出
         System.in.read();
-
-
     }
 
 }

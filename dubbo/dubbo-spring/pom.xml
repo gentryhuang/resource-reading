@@ -10,14 +10,18 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.code.resource</groupId>
-    <artifactId>common</artifactId>
+    <artifactId>dubbo-spring</artifactId>
+    <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
+    <modules>
+        <module>xml-config</module>
+    </modules>
 
     <dependencies>
         <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>1.18.6</version>
+            <groupId>com.code.resource</groupId>
+            <artifactId>common</artifactId>
+            <version>1.0-SNAPSHOT</version>
         </dependency>
     </dependencies>
 

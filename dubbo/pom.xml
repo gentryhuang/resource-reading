@@ -16,6 +16,7 @@
     <modules>
         <module>dubbo-spi</module>
         <module>common</module>
+        <module>dubbo-spring</module>
     </modules>
 
     <dependencies>

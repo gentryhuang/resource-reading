@@ -1,5 +1,5 @@
 red=com.code.dubbo.spi.provider.spi.RedCarService
 black=com.code.dubbo.spi.provider.spi.BlackCarService
-#com.code.dubbo.spi.provider.spi.CarWrapper
-#com.code.dubbo.spi.provider.spi.CarWrapper2
+com.code.dubbo.spi.provider.spi.CarWrapper
+com.code.dubbo.spi.provider.spi.CarWrapper2
 benz=com.code.dubbo.spi.provider.spi.BenzCar
