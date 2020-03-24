@@ -27,7 +27,7 @@ public class SpiDemo {
 
 
         // 通过设置URL，来改变某种行为，这里是完成IOC功能，即通过Setter把需要的实现进行注入，这里注入的就是red对应的实现
-        Map<String, String> map = new HashMap<>(2);
+        Map<String,String> map = new HashMap<>(2);
         // 指定URL中key-valu参数
         map.put("car", "red");
         URL url = new URL("", "", 1, map);
