@@ -1,16 +1,17 @@
 package java.util;
 
+import sun.misc.SharedSecrets;
+
 import java.io.IOException;
 import java.io.InvalidObjectException;
 import java.io.Serializable;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import sun.misc.SharedSecrets;
+import static java.util.HashMap.comparableClassFor;
+import static java.util.HashMap.compareComparables;
 
 /**
  * 数组 + 链表 + 红黑树
@@ -22,6 +23,37 @@ public class HashMap<K, V> extends AbstractMap<K, V>
         implements Map<K, V>, Cloneable, Serializable {
 
     private static final long serialVersionUID = 362498820763181265L;
+
+    /** Because TreeNodes are about twice the size of regular nodes, we
+     * use them only when bins contain enough nodes to warrant use
+     * (see TREEIFY_THRESHOLD). And when they become too small (due to
+     * removal or resizing) they are converted back to plain bins.  In
+     * usages with well-distributed user hashCodes, tree bins are
+     * rarely used.  Ideally, under random hashCodes, the frequency of
+     * nodes in bins follows a Poisson distribution
+     * (http://en.wikipedia.org/wiki/Poisson_distribution) with a
+     * parameter of about 0.5 on average for the default resizing
+     * threshold of 0.75, although with a large variance because of
+     * resizing granularity. Ignoring variance, the expected
+     * occurrences of list size k are (exp(-0.5) * pow(0.5, k) /
+     * factorial(k)). The first values are:
+     *
+     * 0:    0.60653066
+     * 1:    0.30326533
+     * 2:    0.07581633
+     * 3:    0.01263606
+     * 4:    0.00157952
+     * 5:    0.00015795
+     * 6:    0.00001316
+     * 7:    0.00000094
+     * 8:    0.00000006
+     * more: less than 1 in ten million // 不到千万分之一
+     *
+     * The root of a tree bin is normally its first node.  However,
+     * sometimes (currently only upon Iterator.remove), the root might
+     * be elsewhere, but can be recovered following parent links
+     * (method TreeNode.root()).
+     */
 
     /**
      * 默认容量大小 16，大小必须是 2^N
@@ -180,6 +212,7 @@ public class HashMap<K, V> extends AbstractMap<K, V>
 
     /**
      * 指定容量大小和负载因子的构造函数，是最基础的构造函数
+     *
      * @param initialCapacity
      * @param loadFactor
      */
@@ -642,7 +675,7 @@ public class HashMap<K, V> extends AbstractMap<K, V>
                 if (p instanceof TreeNode)
                     node = ((TreeNode<K, V>) p).getTreeNode(hash, key);
 
-                // 遍历链表，找到待删除节点
+                    // 遍历链表，找到待删除节点
                 else {
                     do {
                         if (e.hash == hash &&
@@ -1731,7 +1764,6 @@ public class HashMap<K, V> extends AbstractMap<K, V>
         }
 
 
-
         /**
          * Calls find for root node.
          */
@@ -1760,52 +1792,70 @@ public class HashMap<K, V> extends AbstractMap<K, V>
          * 将树形链表转换成红黑树
          */
         final void treeify(Node<K, V>[] tab) {
+
+            // 定义红黑树的根节点
             TreeNode<K, V> root = null;
-            // 遍历链表节点，依次加入到红黑树中
+
+            // 1 遍历树形链表节点，依次加入到红黑树中。
+            // x 指向当前节点，next 指向下一个节点
             for (TreeNode<K, V> x = this, next; x != null; x = next) {
+                // 记录 x 的下一个节点
                 next = (TreeNode<K, V>) x.next;
+                // 左右节点先确保干净
                 x.left = x.right = null;
+
+                // 2 如果根节点为空，说明还没有开始构建红黑树，这里开始构建。即将当前节点作为根节点，颜色设为黑色
                 if (root == null) {
                     x.parent = null;
                     x.red = false;
                     root = x;
+
+                    // 3 红黑树已经存在，则往该树中添加节点
                 } else {
+
+                    // 记录当前遍历到的树形节点的 key 和 hash
                     K k = x.key;
                     int h = x.hash;
                     Class<?> kc = null;
 
-                    // 找到空位置插入节点
+                    // 3.1 从根节点遍历，为节点 x 找到空位置并插入
                     for (TreeNode<K, V> p = root; ; ) {
+                        // dir 表示方向（左边/右边），ph 表示 hash 值
                         int dir, ph;
                         K pk = p.key;
 
                         /* 比较大小，定位插入左边/右边*/
-                        // hash 判断
+                        // 3.1.1 hash 判断
                         if ((ph = p.hash) > h)
                             dir = -1;
                         else if (ph < h)
                             dir = 1;
 
-                        // 通过比较器判断大小
+                            // 3.1.2 根据比较器判断大小
                         else if ((kc == null &&
                                 // Comparable 接口判断
                                 (kc = comparableClassFor(k)) == null) ||
                                 (dir = compareComparables(kc, k, pk)) == 0)
 
-                            // 通过 k 类名比较
+                            // 3.1.3 通过 k 类名比较
                             dir = tieBreakOrder(k, pk);
 
+                        // 保存当前遍历的树节点
                         TreeNode<K, V> xp = p;
 
-                        // 根据 dir 确定放入左边还是右边
+                        // 3.2.1 根据 dir 确定放入左边还是右边
+                        // 如果根据 dir 确定了位置后，还要判断 p 是不是叶子节点（末节点），如果不是则继续往下找适合节点x插入的位置，也就是 x 节点的父节点
                         if ((p = (dir <= 0) ? p.left : p.right) == null) {
+                            // x 节点找到了父节点
                             x.parent = xp;
+
+                            // 将 x 节点挂到它的父节点 xp 下
                             if (dir <= 0)
                                 xp.left = x;
                             else
                                 xp.right = x;
 
-                            // 维护红黑树
+                            // 3.2.2 x 节点插入后，可能会导致红黑树不符合规则，因此需要尝试进行调整
                             root = balanceInsertion(root, x);
                             break;
                         }
@@ -2078,89 +2128,219 @@ public class HashMap<K, V> extends AbstractMap<K, V>
         /* ------------------------------------------------------------ */
         // Red-black tree methods, all adapted from CLR
 
+        /**
+         * 左旋：
+         * 1 将节点 p 旋转为其右节点的左节点，即将节点 p 挂到其右节点的左边
+         * 2 其右节点的左节点成为节点p 的右节点
+         *
+         * @param root
+         * @param p
+         * @param <K>
+         * @param <V>
+         * @return
+         */
         static <K, V> TreeNode<K, V> rotateLeft(TreeNode<K, V> root,
                                                 TreeNode<K, V> p) {
+
+            // r -> 节点 p 的右节点
+            // rl -> 节点 p 的右节点的左节点
+            // pp -> 节点 p 的父节点，最后是 p 的右节点的父节点
             TreeNode<K, V> r, pp, rl;
+
+            // p 不为空且右节点不为空
             if (p != null && (r = p.right) != null) {
+
+                // 1 将 p 的右节点的左节点挂到 p 的右节点，这有两个信息
+                // a. 断开 p 与其右节点 r 的连接
+                // b. 因为 p 要挂到其右节点 r 的左边，因此要把节点 r 原来的左节点挂到 p 的右边
                 if ((rl = p.right = r.left) != null)
+                    // r 节点的左节点的父节点重置为 p
                     rl.parent = p;
+
+                // 2 将 p 的父节点设置为 p 的右节点的父节点
                 if ((pp = r.parent = p.parent) == null)
+                    // 如果 p 为 root 节点，那么直接将其右节点设置为 root
                     (root = r).red = false;
+
+                    // 3 确定 r 节点应该挂在 p 的父节点的左边还是右边。这个根据 p 的位置决定
                 else if (pp.left == p)
                     pp.left = r;
                 else
                     pp.right = r;
+
+                // 4 将 p 设置为其右节点的左边
                 r.left = p;
+                // 5 将 p 的右节点指为其父节点
                 p.parent = r;
             }
+
+            // 返回根节点
             return root;
         }
 
+        /**
+         * 右旋：
+         * 1 将节点 p 旋转为其左节点的右节点，即将节点 p 挂到其左节点的右边
+         * 2 其左节点的右节点成为节点 p 的左节点
+         *
+         * @param root
+         * @param p
+         * @param <K>
+         * @param <V>
+         * @return
+         */
         static <K, V> TreeNode<K, V> rotateRight(TreeNode<K, V> root,
                                                  TreeNode<K, V> p) {
+            // l -> 节点 P 的左节点
+            // pp -> 节点 p 的父节点
+            // lr -> 节点 p 的左节点的右孩子
             TreeNode<K, V> l, pp, lr;
+
+            // 节点 p 和 其左节点不为空
             if (p != null && (l = p.left) != null) {
+
+                // 1 将 p 的左节点的右孩子挂到 p 的左边
                 if ((lr = p.left = l.right) != null)
+                    // 将 p 指定为 lr 的父节点
                     lr.parent = p;
+
+                // 2 将 p 的父节点指定为其右节点的父节点
                 if ((pp = l.parent = p.parent) == null)
                     (root = l).red = false;
+
+                    // 2.1 确定 p 的右节点应该挂在 p的父节点左边还是右边
                 else if (pp.right == p)
                     pp.right = l;
                 else
                     pp.left = l;
+
+
+                // 3 调整 p 的关系：
+                // a.将 p 设置为其左节点的右孩子
+                // b.将 p 的父节点指定为其左节点
                 l.right = p;
                 p.parent = l;
             }
+
+            // 返回根节点
             return root;
         }
 
+        /**
+         * 红黑树自平衡:
+         * <p>
+         * 1 红黑树为空，插入的节点 x 作为根节点即可
+         * 2
+         *
+         * @param root 根节点
+         * @param x    插入的目标节点
+         * @return
+         */
         static <K, V> TreeNode<K, V> balanceInsertion(TreeNode<K, V> root,
                                                       TreeNode<K, V> x) {
+
             // 默认插入红色
             x.red = true;
 
             // xp -> 父节点
             // xpp -> 祖父节点
+            // xppl 是祖父节点的左节点（左叔叔节点）
+            // xppr 是祖父节点的右节点（右叔叔节点）
             for (TreeNode<K, V> xp, xpp, xppl, xppr; ; ) {
+
+                // 1 x 节点的父节点不存在，说明当前节点是根节点，只需变色为黑色即可
                 if ((xp = x.parent) == null) {
                     x.red = false;
                     return x;
+
+                    // 2 x 节点的父节点是黑色，可以在下面直接添加红色节点，不需要调整；x 节点的祖父节点为空，说明 x 的父节点是根节点，可以在下面直接添加红色节点，也不许要调整
                 } else if (!xp.red || (xpp = xp.parent) == null)
                     return root;
+
+                // 3 x 的父节点 xp 是红色且 x 祖父节点 xxp 不为空。这样就遇到了两个红色节点相连的情况。这种情况分两种可能
+
+                // 3.1 如果父节点 xp 是祖父节点的左节点
                 if (xp == (xppl = xpp.left)) {
+
+                    // 3.1.1 如果祖父节点的右节点（右叔叔节点）不为空，同时是红色。则：
+                    // a. 将父节点和右叔叔节点变色 -> 黑色
+                    // b. 将祖父节点变色 -> 红色
+                    // c. 将祖父节点作为当前节点 x ，进行下一轮的调整（xxp 节点变成红色后可能与xpp的父节点发生冲突，也就是两个连续的红色节点）
                     if ((xppr = xpp.right) != null && xppr.red) {
                         xppr.red = false;
                         xp.red = false;
                         xpp.red = true;
                         x = xpp;
+
+                        // 3.1.2 如果祖父节点的右节点（右叔叔节点）为空或是黑色。那么就可能对应以下两种情况：
                     } else {
+
+                        // xpp->xp(xxp的左节点)->x(xp的右节点) => LR 双红
                         if (x == xp.right) {
+                            // 将 xp 节点左旋，得到 LL 双红的情况
                             root = rotateLeft(root, x = xp);
+                            // 调整旋转后的节点
                             xpp = (xp = x.parent) == null ? null : xp.parent;
                         }
+
+                        // xpp->xp(xxp 的左节点)->x(xp的左节点) => LL 双红
                         if (xp != null) {
+                            // 父节点 xp 变色 -> 黑色
                             xp.red = false;
+
+                            // 存在祖父节点
                             if (xpp != null) {
+                                // 祖父节点 xpp 变色 -> 红色
                                 xpp.red = true;
+
+                                // 右旋祖父节点
+                                // 特别说明：上一步将祖父节点 xpp 变成红色，为啥这里直接旋转祖父节点 xpp 就可以结束了？因为 xp 变成了黑色，旋转后的结果是 xpp 挂到 xp 的右边成为 xp 的孩子节点，
+                                // xp 成为最开始 xpp 的父节点的孩子节点（如果 xpp 是根节点，那么此时 xp 就是新的根节点），因此这里不用考虑 xpp 变色后破坏红黑树特点。简单来说，对于 xpp 的父节点
+                                // 而言只是将 xpp 这个孩子节点换成了 xp ，但是节点颜色相比之前是没有变的。
                                 root = rotateRight(root, xpp);
                             }
                         }
                     }
+
+
+                    // 3.2 父节点 xp 是祖父节点的右节点。和上面的情况相反但操作类似，一个是左节点，另一个是右节点
                 } else {
+
+                    // 3.2.1 如果 x 节点的祖父节点的左节点（左叔叔节点）不为空，同时是红色。则：
+                    // a. 将父节点和左叔叔节点变色 -> 黑色
+                    // b. 将祖父节点变色 -> 红色
+                    // c. 将祖父节点作为当前节点 x ，进行下一轮的调整（xxp 节点变成红色后可能与xpp的父节点发生冲突，也就是两个连续的红色节点）
                     if (xppl != null && xppl.red) {
                         xppl.red = false;
                         xp.red = false;
                         xpp.red = true;
                         x = xpp;
+
+
+                        // 3.2.2 如果祖父节点的左节点（左叔叔节点）为空或是黑色。那么就可能对应以下两种情况：
                     } else {
+
+                        // xpp->xp(xxp的右节点)->x(xp的左节点) => RL 双红
                         if (x == xp.left) {
+                            // 将父节点 xp 右旋转，得到 RR 双红
                             root = rotateRight(root, x = xp);
                             xpp = (xp = x.parent) == null ? null : xp.parent;
                         }
+
+                        // xpp->xp(xxp的右节点)->x(xp的右节点) => RR 双红
                         if (xp != null) {
+
+                            // 父节点变色 -> 黑色
                             xp.red = false;
+
+                            // 存在祖父节点
                             if (xpp != null) {
+
+                                // 祖父节点变色 -> 红色
                                 xpp.red = true;
+
+                                // 左旋祖父节点
+                                // 特别说明：原因同上
                                 root = rotateLeft(root, xpp);
                             }
                         }
@@ -2171,6 +2351,7 @@ public class HashMap<K, V> extends AbstractMap<K, V>
 
         static <K, V> TreeNode<K, V> balanceDeletion(TreeNode<K, V> root,
                                                      TreeNode<K, V> x) {
+
             for (TreeNode<K, V> xp, xpl, xpr; ; ) {
                 if (x == null || x == root)
                     return root;

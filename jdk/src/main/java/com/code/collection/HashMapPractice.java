@@ -2,6 +2,9 @@ package com.code.collection;
 
 import java.util.HashMap;
 
+import static java.util.HashMap.comparableClassFor;
+import static java.util.HashMap.compareComparables;
+
 /**
  * HashMapPractice
  *
@@ -13,11 +16,11 @@ import java.util.HashMap;
 public class HashMapPractice {
 
     public static void main(String[] args) {
-        HashMap<String,Object> hashMap = new HashMap(4);
+        HashMap<String, Object> hashMap = new HashMap(2, 1);
 
-        for (int i = 0; i<Integer.MAX_VALUE;i++){
+        for (int i = 0; i < Integer.MAX_VALUE; i++) {
 
-            hashMap.put(i +"","gentryhuang");
+            hashMap.put(i + "", "gentryhuang");
 
             System.out.println("size:" + hashMap.size());
 
@@ -30,4 +33,9 @@ public class HashMapPractice {
         System.out.println(hashMap);
 
     }
+
+
+
+
+
 }
