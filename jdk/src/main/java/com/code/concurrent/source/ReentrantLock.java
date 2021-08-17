@@ -192,7 +192,7 @@ public class ReentrantLock implements Lock, java.io.Serializable {
         }
 
         /**
-         * 判断当前线程是否正在独占锁
+         * 判断当前线程是否正在占有独占锁
          *
          * @return
          */
