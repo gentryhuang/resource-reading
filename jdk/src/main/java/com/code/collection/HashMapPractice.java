@@ -2,9 +2,6 @@ package com.code.collection;
 
 import java.util.HashMap;
 
-import static java.util.HashMap.comparableClassFor;
-import static java.util.HashMap.compareComparables;
-
 /**
  * HashMapPractice
  *
