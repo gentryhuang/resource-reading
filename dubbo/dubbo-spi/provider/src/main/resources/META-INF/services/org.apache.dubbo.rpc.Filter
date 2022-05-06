@@ -1,1 +1,0 @@
-exceptionFilter=com.code.dubbo.spi.provider.filter.DubboExceptionFilter

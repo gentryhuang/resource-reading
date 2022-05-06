@@ -8,7 +8,7 @@ import java.lang.annotation.Target;
 /**
  * PrintLog
  *
- * @author <a href="mailto:libao.huang@yunhutech.com">shunhua</a>
+ * @author shunhua
  * @since 2020/12/31
  * <p>
  * desc：编译时打印message

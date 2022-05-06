@@ -9,13 +9,7 @@
     <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
     <modules>
-        <module>dubbo</module>
-        <module>redis</module>
         <module>jdk</module>
-        <module>mybatis</module>
-        <module>rocketmq</module>
-        <module>spring</module>
-        <module>spring-mvc</module>
         <module>elastic-job</module>
         <module>annotation</module>
     </modules>
