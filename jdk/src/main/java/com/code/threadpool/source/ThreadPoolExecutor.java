@@ -130,6 +130,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
         return c & CAPACITY;
     }
 
+    // 返回线程池的状态码，包括两部分：线程池状态 + 线程数
     private static int ctlOf(int rs, int wc) {
         return rs | wc;
     }
@@ -455,7 +456,9 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
     }
 
     /**
-     * 尝试终止线程池
+     * 尝试终止线程池，被用在：shutdown()、shutdownNow()、线程退出
+     *
+     * 几乎每个线程最后消亡的时候都会调用tryTerminate()方法，但最后只会有一个线程真正执行到终止线程池的地方。
      */
     final void tryTerminate() {
         for (; ; ) {
@@ -464,6 +467,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
             int c = ctl.get();
 
             // 线程池是运行状态，或大于等于 TIDYING 状态，或是 SHUTDOWN 状态且阻塞队列非空。这些条件是不允许关闭线程池的
+            // todo STOP 状态一定会执行后续的终止流程
             if (isRunning(c) || runStateAtLeast(c, TIDYING) || (runStateOf(c) == SHUTDOWN && !workQueue.isEmpty()))
                 return;
 
@@ -472,6 +476,8 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
                 interruptIdleWorkers(ONLY_ONE);
                 return;
             }
+
+            /* 只有工作线程数为 0 才能进入终止线程池流程。工作线程数为 0 ，那么所有任务其实也终止了*/
 
             // 全局锁
             final ReentrantLock mainLock = this.mainLock;
@@ -489,6 +495,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
                         // 设置线程池状态码为 TERMINATED 终止状态
                         ctl.set(ctlOf(TERMINATED, 0));
 
+                        // 主要为 awaitTermination 方法服务，唤醒等待线程池终止的线程
                         termination.signalAll();
                     }
                     return;
@@ -552,9 +559,10 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
             // 遍历 workers ，对每个非中断线程进行中断操作。
             for (Worker w : workers) {
                 Thread t = w.thread;
-                // 如果线程非中断状态，且能 tryLock() 成功，说明该线程闲置，需要进行中断
+                // 如果线程非中断状态，且能 tryLock() 成功「执行的过程会持有锁，这就不能获取成功」，说明该线程闲置(阻塞等待），需要进行中断
                 if (!t.isInterrupted() && w.tryLock()) {
                     try {
+                        // 让从阻塞状态的线程醒来后，判断线程池关闭了，进而回收「getTask 方法中」
                         t.interrupt();
                     } catch (SecurityException ignore) {
                     } finally {
@@ -637,7 +645,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
              *小结：
              * 1 线程池处于 SHUTDOWN 状态时，不允许提交任务，但是已经存在的任务需要继续执行。
              *  1.1 当 firstTask == null 时且阻塞队列不为空，说明非提交任务创建线程，执行阻塞队列中的任务，允许创建 Worker
-             *  1.2 当 firstTask == null 但阻塞队为，不能创建 Worker
+             *  1.2 当 firstTask == null 但阻塞队为空，不能创建 Worker
              *  1.3 当 firstTask ！= null 时，不能创建
              * 2 线程池状态大于 SHUTDOWN 状态时，不允许提交任务，且中断正在执行的任务。
              */
@@ -776,6 +784,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
      */
     private void processWorkerExit(Worker w, boolean completedAbruptly) {
         // 线程执行任务抛出了异常
+        // todo 注意，如果正常退出，那么在 getTask 方法中会递减线程池中线程数量
         if (completedAbruptly)
             // 减少线程池中线程数量
             decrementWorkerCount();
@@ -861,6 +870,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
 
             try {
                 // 从队列中取出任务
+                // 注意，真正响应中断是在 poll() 方法或者 take() 方法中
                 Runnable r = timed ?
                         // 超时获取任务，因为线程超时要被回收。如果线程在等待的过程发生了中断，会抛出中断异常
                         workQueue.poll(keepAliveTime, TimeUnit.NANOSECONDS) :
@@ -913,6 +923,11 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
             // 循环调用getTask() 方法从任务队列中获取任务并执行
             while (task != null || (task = getTask()) != null) { // todo execute 和 submit 执行不一样，submit 会包装任务类
 
+                /*
+                 * 特别说明：
+                 * 已经通过 getTask() 取出来的任务会正常运行，不管什么中断、shutdown、stop，除非断电了。
+                 */
+
                 // 上锁
                 w.lock();
 
@@ -963,8 +978,9 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
         } finally {
             /**
              * 线程退出 while 循环后需要进行回收，可能情况如下：
-             * 1 任务队列中已经没有要执行的任务了
-             * 2 任务执行过程出现异常
+             * 1 线程池关闭且任务队列中已经没有要执行的任务了
+             * 2 线程池 Stop 停止了
+             * 3 任务执行过程出现异常
              */
             processWorkerExit(w, completedAbruptly);
         }
@@ -1057,6 +1073,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
             // 设置线程池状态为 STOP
             advanceRunState(STOP);
             // 尝试中断线程池中所有启动状态的线程
+            // 没有启动状态的线程，不会去中断，通过 Worker 中的 同步状态 state >= 0 判断
             interruptWorkers();
             // 将阻塞队列中正在等待的所有任务进行备份，然后清空阻塞队列并返回备份。有了这个备份，可以根据需要做补救措施。
             tasks = drainQueue();
@@ -1212,9 +1229,14 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
      * thread is started even if corePoolSize is 0.
      */
     void ensurePrestart() {
+        // 计算线程池中线程数量
         int wc = workerCountOf(ctl.get());
+
+        // 没有达到核心线程，就继续创建核心线程
         if (wc < corePoolSize)
             addWorker(null, true);
+
+        // 线程池为 0 ，创建非核心线程
         else if (wc == 0)
             addWorker(null, false);
     }
