@@ -32,8 +32,21 @@ public class ConcurrentHashMapPractice {
         System.out.println(name1);
 
 
-
         System.out.println(concurrentHashMap);
 
+        System.out.println((Integer.toBinaryString(((resizeStamp(16) << 16)+2))));
+
+
+
+
+
+
+        System.out.println((resizeStamp(16)<<16)>>>16);
+
+    }
+
+    static int resizeStamp(int n) {
+         int RESIZE_STAMP_BITS = 16;
+        return Integer.numberOfLeadingZeros(n) | (1 << (RESIZE_STAMP_BITS - 1));
     }
 }

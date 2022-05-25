@@ -57,6 +57,10 @@
 //
 //    /**
 //     * 默认容量大小 16，大小必须是 2^N
+//     * <p>
+//     * 即数组的长度，亦即桶的个数，默认为 16 ，最大为 2^30。
+//     * <p>
+//     * 进行树化的条件之一就是，容量 > 64
 //     */
 //    static final int DEFAULT_INITIAL_CAPACITY = 1 << 4; // aka 16
 //
@@ -72,6 +76,9 @@
 //
 //    /**
 //     * 桶的树化阈值： 使用红黑树时元素个数的阈值。在存储数据时，当链表长度 >= 8时，则将链表转换成红黑树。
+//     * <p>
+//     * 树化：当数组的长度（容量）>= 64 && 链表的长度达到 8 时，才可以进行树化；
+//     * 反树化：当链表的长度 <= 6 时进行反树化
 //     */
 //    static final int TREEIFY_THRESHOLD = 8;
 //
@@ -82,7 +89,7 @@
 //    static final int UNTREEIFY_THRESHOLD = 6;
 //
 //    /**
-//     * 最小树形化容量阈值：使用红黑树时最小的桶数组长度。当 HashMap 中的容量 > 该值时，才允许树形化链表即将链表转成红黑树
+//     * 最小树形化容量阈值：使用红黑树时最小的桶数组长度。当 HashMap 中的容量（桶数量） >= 该值时，才允许树形化链表即将链表转成红黑树
 //     */
 //    static final int MIN_TREEIFY_CAPACITY = 64;
 //
@@ -175,19 +182,22 @@
 //        n |= n >>> 4;
 //        n |= n >>> 8;
 //        n |= n >>> 16;
+//        // 达到最大容量 MAXIMUM_CAPACITY ，就使用 MAXIMUM_CAPACITY
 //        return (n < 0) ? 1 : (n >= MAXIMUM_CAPACITY) ? MAXIMUM_CAPACITY : n + 1;
 //    }
 //
 //    /* ---------------- Fields -------------- */
 //
 //    /**
-//     * 存储数据的 Node 数组，长度是 2 的幂。
+//     * 存储数据的 Node 数组，长度是 2 的幂。又叫做桶（bucket)
 //     */
 //    transient Node<K, V>[] table;
 //
 //    /**
 //     * Holds cached entrySet(). Note that AbstractMap fields are used
 //     * for keySet() and values().
+//     * <p>
+//     * 作为 entrySet() 的缓存
 //     */
 //    transient Set<Map.Entry<K, V>> entrySet;
 //
@@ -197,15 +207,19 @@
 //    transient int size;
 //
 //    /**
-//     * HashMap 被改变的次数
+//     * HashMap 被改变的次数，用于迭代时快速失败
 //     */
 //    transient int modCount;
 //
 //
-//    // 扩容的阈值（当前 HashMap 所能容纳键值对数量的最大值，超过该值则需要扩容），等于 capacity * loadFactory
+//    // 扩容的阈值（当前 HashMap 所能容纳键值对数量的最大值，超过该值则需要扩容），
+//    // 1 等于 capacity * loadFactory 「默认构造方法」
+//    // 2 2 倍增大「正常扩容过程」
+//    // 3 Integer.MAX_VALUE「数组容量达到最大值」
 //    int threshold;
 //
 //    // 负载因子，默认为 0.75
+//    // 用来计算容量达到多少时才进行扩容
 //    final float loadFactor;
 //
 //    /* ----------------构造方法 -------------- */
@@ -377,6 +391,7 @@
 //     */
 //    final V putVal(int hash, K key, V value, boolean onlyIfAbsent,
 //                   boolean evict) {
+//
 //        Node<K, V>[] tab;
 //        Node<K, V> p;
 //        int n, i;
@@ -394,26 +409,29 @@
 //            Node<K, V> e;
 //            K k;
 //
-//            // 在该位置的第一个数据的 key 和要插入 遇到相同的 key 了
+//            // 判断是否 key 冲突
+//            // 在该位置的第一个数据的 key 和要插入的 key 相同
 //            if (p.hash == hash &&
 //                    ((k = p.key) == key || (key != null && key.equals(k))))
+//                // 保存到 e 中用于后续修改 value 值
 //                e = p;
 //
-//                // 在红黑树中插入节点
+//                // 判断当前桶是否是树结构，如果是则在红黑树中插入节点
 //            else if (p instanceof TreeNode)
 //                e = ((TreeNode<K, V>) p).putTreeVal(this, tab, hash, key, value);
 //
-//                // 在链表中插入节点
+//                // 当前桶不是树结构，说明是链表结构，则在链表中插入节点
 //            else {
-//                // 对链表进行遍历，并统计链表长度
+//
+//                // 对这个桶对应的链表进行遍历，并统计链表长度
 //                for (int binCount = 0; ; ++binCount) {
 //
-//                    // 链表中不包含要插入的键值对节点，则插入到链表的最后，即尾插法
+//                    // 链表中不包含要插入的key 对应的键值对节点，则插入到链表的最后，即尾插法
 //                    if ((e = p.next) == null) {
 //                        p.next = newNode(hash, key, value, null);
 //
-//                        // 如果新插入的值是链表中的第 8 个会触发树化操作，也就是将链表转换为红黑树
-//                        if (binCount >= TREEIFY_THRESHOLD - 1) // -1 for 1st
+//                        // 如果新插入的值是链表中的第 8 个会尝试触发树化操作，也就是将链表转换为红黑树
+//                        if (binCount >= TREEIFY_THRESHOLD - 1) // -1 for 1st  因为第一个元素没有加入到binCount中，所以这里-1
 //                            treeifyBin(tab, hash);
 //                        break;
 //                    }
@@ -438,6 +456,8 @@
 //                // key 相同进行值覆盖
 //                if (!onlyIfAbsent || oldValue == null)
 //                    e.value = value;
+//
+//                // 在节点被访问后做点什么，在 LinkedHashMap 中用到
 //                afterNodeAccess(e);
 //
 //                // 返回旧值
@@ -452,7 +472,10 @@
 //        if (++size > threshold)
 //            resize();
 //
+//        // 在节点插入后做点什么事，在LinkedHashMap中用到
 //        afterNodeInsertion(evict);
+//
+//        // 没有相同 key 的元素
 //        return null;
 //    }
 //
@@ -467,7 +490,7 @@
 //        // table 旧的容量，最开始 table 为空
 //        int oldCap = (oldTab == null) ? 0 : oldTab.length;
 //
-//        // 扩容阈值
+//        // 旧扩容阈值
 //        int oldThr = threshold;
 //        int newCap, newThr = 0;
 //
@@ -476,15 +499,18 @@
 //            // 超过最大容量，则使用 Integer.MAX_VALUE 的值，不再进行扩容
 //            if (oldCap >= MAXIMUM_CAPACITY) {
 //                threshold = Integer.MAX_VALUE;
+//                // 直接返回旧的数组
 //                return oldTab;
 //
 //                // 将 数组扩大一倍
 //            } else if ((newCap = oldCap << 1) < MAXIMUM_CAPACITY &&
 //                    oldCap >= DEFAULT_INITIAL_CAPACITY)
-//                // 将 扩容阈值 也增大一倍
+//                // 如果此时旧容量大于初始化容量 16，则将 扩容阈值 也增大一倍
 //                newThr = oldThr << 1; // double threshold
 //
-//            // 对应使用 new HashMap(int initialCapacity) 初始化后，第一次 put 的时候初始容量设置为 threshold
+//            // 对应使用 new HashMap(int initialCapacity) 初始化后，第一次插入元素走到这里，旧数组容量设置为 旧扩容阈值
+//            // 此时，旧扩容阈值等于传入容量向上最近的2的n次方；
+//            // todo 注意，在构造方法中并没有初始化数组，这里才使用到传入的初始化容量值
 //        } else if (oldThr > 0) // initial capacity was placed in threshold
 //            newCap = oldThr;
 //
@@ -495,7 +521,7 @@
 //            newThr = (int) (DEFAULT_LOAD_FACTOR * DEFAULT_INITIAL_CAPACITY);
 //        }
 //
-//        // newThr 为 0 时，按阈值计算公式进行计算
+//        // newThr 为 0 时，按阈值计算公式进行计算，但不能超过最大容量
 //        if (newThr == 0) {
 //            float ft = (float) newCap * loadFactor;
 //            newThr = (newCap < MAXIMUM_CAPACITY && ft < (float) MAXIMUM_CAPACITY ?
@@ -505,13 +531,18 @@
 //        // 更新扩容阈值
 //        threshold = newThr;
 //
-//        // 用新的数组大小初始化新的数组
+//
+//        /*--------------- 执行到这里，说明数组新的容量，新的扩容阈值都已确定 ------------------*/
+//
+//        // 用新的数组大小创建新的数组
 //        @SuppressWarnings({"rawtypes", "unchecked"})
 //        Node<K, V>[] newTab = (Node<K, V>[]) new Node[newCap];
 //
 //        // 如果非扩容而是初始化数组，执行到这里就结束了
 //        table = newTab;
 //
+//
+//        /*---------------------- 以下是扩容逻辑 ----------------*/
 //        // 扩容，进行数据迁移
 //        if (oldTab != null) {
 //            // 遍历原数组，将键值对映射到新的桶数组中
@@ -520,13 +551,15 @@
 //
 //                // 取出下标 j 的元素
 //                if ((e = oldTab[j]) != null) {
+//                    // 清空旧桶，便于 GC 回收
 //                    oldTab[j] = null;
+//
 //                    // 如果当前数组位置上只有一个 Node 元素，简单迁移即可
 //                    if (e.next == null)
 //                        // 通过 hash 值计算出在新数组中所属的位置
 //                        newTab[e.hash & (newCap - 1)] = e;
 //
-//                        // 如果是红黑树，需要对红黑树进行拆分
+//                        // 如果第一个元素是树节点，需要对红黑树进行拆分，也就是将这颗红黑树打散成两颗然后插入到新桶中去
 //                    else if (e instanceof TreeNode)
 //                        ((TreeNode<K, V>) e).split(this, newTab, j, oldCap);
 //
@@ -534,6 +567,11 @@
 //                    else { // preserve order
 //
 //                        // 将当前链表拆分成两个链表，放到新的数组中，并且保留原来的先后顺序
+//                        /*
+//                          比如，原来数组容量为 4 ，在 3 号桶中的元素为，3、7、11、15 这四个元素。
+//                          现在数组容量扩容到 8 ，那么 3 和 11 还是在 3 号桶，7 和 15 要迁移到 7 号桶中，
+//                          也就是分成了两个链表。
+//                         */
 //
 //                        // loHead、loTail 对应一条链表，hiHead、hiTail 对应另一条链表
 //                        Node<K, V> loHead = null, loTail = null;
@@ -545,6 +583,7 @@
 //                            next = e.next;
 //
 //                            // 根据e的 hash 值和旧的容量做位与运算是否为 0 来拆分当前链表进行分组，注意之前是 e.hash & (oldCap - 1)
+//                            // 即 (e.hash & oldCap) == 0 的元素放在低位链表中
 //                            if ((e.hash & oldCap) == 0) {
 //                                if (loTail == null)
 //                                    loHead = e;
@@ -552,6 +591,7 @@
 //                                    loTail.next = e;
 //                                loTail = e;
 //
+//                                // (e.hash & oldCap) != 0 的元素放在高位链表中
 //                            } else {
 //                                if (hiTail == null)
 //                                    hiHead = e;
@@ -560,6 +600,11 @@
 //                                hiTail = e;
 //                            }
 //                        } while ((e = next) != null);
+//
+//                        /* 遍历完链表完成分化成两个链表后：
+//                         * - 低位链表在新桶中的位置与旧桶中的一样
+//                         * - 高位链表在新桶中的位置正好是原来的位置加上旧容量
+//                         */
 //
 //                        // 将分组后的链表映射到新桶中
 //
@@ -692,11 +737,18 @@
 //            // 3. 删除节点，并修复链表或红黑树
 //            if (node != null && (!matchValue || (v = node.value) == value ||
 //                    (value != null && value.equals(v)))) {
+//
+//                // 如果是树节点，调用树的删除方法（以node调用的，是删除自己）
 //                if (node instanceof TreeNode)
 //                    ((TreeNode<K, V>) node).removeTreeNode(this, tab, movable);
+//
+//                // 如果待删除的元素是第一个元素，则把第二个元素移到第一的位置
 //                else if (node == p)
 //                    tab[index] = node.next;
+//
 //                else
+//
+//                    // 否则删除node节点
 //                    p.next = node.next;
 //                ++modCount;
 //                --size;
@@ -1893,41 +1945,74 @@
 //
 //        /**
 //         * Tree version of putVal.
+//         * <p>
+//         * 插入元素到红黑树中：
+//         * 1. 寻找根节点；
+//         * 2. 从根节点开始查找；
+//         * 3. 比较 hash 值及 key 值，如果都相同，直接返回，在 putVal 方法中决定是否要替换 value 值；
+//         * 4. 根据 hash 值及 key 值确定在树的左子树还是右子树查找，找到直接返回；
+//         * 5. 如果最后没有找到则在树的相应位置插入元素，并做平衡；
 //         */
 //        final TreeNode<K, V> putTreeVal(HashMap<K, V> map, Node<K, V>[] tab,
 //                                        int h, K k, V v) {
 //            Class<?> kc = null;
+//
+//            // 标记是否找到这个 key 的节点
 //            boolean searched = false;
 //
-//            // 没有父节点，则必然是 root
+//            // 找到树的根节点
 //            TreeNode<K, V> root = (parent != null) ? root() : this;
+//
+//            // 从树的根节点开始遍历
 //            for (TreeNode<K, V> p = root; ; ) {
+//                // dir=direction，标记是在左边还是右边
+//                // ph=p.hash，当前节点的hash值
 //                int dir, ph;
+//
+//                // pk=p.key，当前节点的 key 值
 //                K pk;
+//
+//                // 当前树节点 hash 比目标hash大，说明在树的左边
 //                if ((ph = p.hash) > h)
 //                    dir = -1;
+//
+//                // 当前树节点 hash 比目标hash小，说明在树的右边
 //                else if (ph < h)
 //                    dir = 1;
+//
+//                // 两者 hash 相同且 key 相等，说明树中存在要插入的节点，直接结束，回到 putVal() 中判断是否需要修改其 value
 //                else if ((pk = p.key) == k || (k != null && k.equals(pk)))
 //                    return p;
+//
+//                // 两者 hash 相同，但是其中一个不是Comparable类型或者两者类型不同，比如key是Object类型，这时可以传String也可以传Integer。
+//                // 在红黑树中把同样hash值的元素存储在同一颗子树，这里相当于找到了这颗子树的顶点，从这个顶点分别遍历其左右子树去寻找有没有跟待插入的key相同的元素
 //                else if ((kc == null &&
+//
+//                        // 如果k是Comparable的子类则返回其真实的类，否则返回null
 //                        (kc = comparableClassFor(k)) == null) ||
+//
+//                        // 如果k和pk不是同样的类型则返回0，否则返回两者比较的结果
 //                        (dir = compareComparables(kc, k, pk)) == 0) {
+//
 //                    if (!searched) {
 //                        TreeNode<K, V> q, ch;
 //                        searched = true;
+//
+//                        // 遍历左右子树找到了直接返回
 //                        if (((ch = p.left) != null &&
 //                                (q = ch.find(h, k, kc)) != null) ||
 //                                ((ch = p.right) != null &&
 //                                        (q = ch.find(h, k, kc)) != null))
 //                            return q;
 //                    }
+//
+//                    // 如果两者类型相同，再根据它们的内存地址计算hash值进行比较
 //                    dir = tieBreakOrder(k, pk);
 //                }
 //
+//                /* 执行到这里，说明没有在树中找到和 key 相同的元素，那么就新建节点并插入树中*/
+//
 //                TreeNode<K, V> xp = p;
-//
-//
 //                if ((p = (dir <= 0) ? p.left : p.right) == null) {
 //                    Node<K, V> xpn = xp.next;
 //                    TreeNode<K, V> x = map.newTreeNode(h, k, v, xpn);
@@ -1939,6 +2024,8 @@
 //                    x.parent = x.prev = xp;
 //                    if (xpn != null)
 //                        ((TreeNode<K, V>) xpn).prev = x;
+//
+//                    // 插入树节点后平衡，并把 root 节点移动到第一个节点
 //                    moveRootToFront(tab, balanceInsertion(root, x));
 //                    return null;
 //                }
@@ -2297,6 +2384,7 @@
 //                                // 特别说明：上一步将祖父节点 xpp 变成红色，为啥这里直接旋转祖父节点 xpp 就可以结束了？因为 xp 变成了黑色，旋转后的结果是 xpp 挂到 xp 的右边成为 xp 的孩子节点，
 //                                // xp 成为最开始 xpp 的父节点的孩子节点（如果 xpp 是根节点，那么此时 xp 就是新的根节点），因此这里不用考虑 xpp 变色后破坏红黑树特点。简单来说，对于 xpp 的父节点
 //                                // 而言只是将 xpp 这个孩子节点换成了 xp ，但是节点颜色相比之前是没有变的。
+//                                // todo 后续继续以 x 节点向上调整，一般执行到分支 2 就结束了
 //                                root = rotateRight(root, xpp);
 //                            }
 //                        }
