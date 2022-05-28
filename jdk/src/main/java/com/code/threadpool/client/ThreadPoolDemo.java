@@ -1,9 +1,9 @@
 package com.code.threadpool.client;
 
+import com.code.queue.ArrayBlockingQueue;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.*;
 
@@ -47,7 +47,7 @@ public class ThreadPoolDemo {
     public static ExecutorService newFixedThreadPool(int nThreads) {
         return new ThreadPoolExecutor(nThreads, 10,
                 5, TimeUnit.SECONDS,
-                new ArrayBlockingQueue<>(10));
+                new com.code.queue.ArrayBlockingQueue<>(10));
     }
 
     /**

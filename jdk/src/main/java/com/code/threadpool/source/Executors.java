@@ -44,6 +44,7 @@ import java.security.PrivilegedExceptionAction;
 import java.security.PrivilegedActionException;
 import java.security.AccessControlException;
 
+import com.code.queue.LinkedBlockingQueue;
 import sun.security.util.SecurityConstants;
 
 public class Executors {
@@ -58,7 +59,7 @@ public class Executors {
     public static ExecutorService newFixedThreadPool(int nThreads) {
         return new ThreadPoolExecutor(nThreads, nThreads,
                 0L, TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<Runnable>());
+                new com.code.queue.LinkedBlockingQueue<Runnable>());
     }
 
     /**
@@ -71,7 +72,7 @@ public class Executors {
     public static ExecutorService newFixedThreadPool(int nThreads, ThreadFactory threadFactory) {
         return new ThreadPoolExecutor(nThreads, nThreads,
                 0L, TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<Runnable>(),
+                new com.code.queue.LinkedBlockingQueue<Runnable>(),
                 threadFactory);
     }
 
@@ -84,7 +85,7 @@ public class Executors {
     public static ExecutorService newSingleThreadExecutor() {
         return new FinalizableDelegatedExecutorService(new ThreadPoolExecutor(1, 1,
                 0L, TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<Runnable>()));
+                new com.code.queue.LinkedBlockingQueue<Runnable>()));
     }
 
     /**
