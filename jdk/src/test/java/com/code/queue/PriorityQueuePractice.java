@@ -7,9 +7,6 @@ import java.io.Serializable;
 /**
  * PriorityQueuePractice
  *
- * @author <a href="mailto:libao.huang@yunhutech.com">shunhua</a>
- * @since 2022/05/07
- * <p>
  * desc：
  */
 public class PriorityQueuePractice {

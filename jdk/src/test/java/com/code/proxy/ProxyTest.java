@@ -7,9 +7,6 @@ import java.io.IOException;
 /**
  * ProxyTest
  *
- * @author <a href="mailto:libao.huang@yunhutech.com">shunhua</a>
- * @since 2021/01/05
- * <p>
  * desc：
  */
 public class ProxyTest {

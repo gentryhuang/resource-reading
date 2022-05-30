@@ -9,9 +9,6 @@ import java.util.concurrent.Semaphore;
 /**
  * SemaphoreDemo
  *
- * @author <a href="mailto:libao.huang@yunhutech.com">shunhua</a>
- * @since 2020/10/11
- * <p>
  * desc：
  */
 @Slf4j

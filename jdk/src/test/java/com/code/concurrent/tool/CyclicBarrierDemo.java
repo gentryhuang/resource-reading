@@ -7,9 +7,6 @@ import java.util.concurrent.*;
 /**
  * CyclicBarrierDemo
  *
- * @author <a href="mailto:libao.huang@yunhutech.com">shunhua</a>
- * @since 2020/10/11
- * <p>
  * desc：
  */
 @Slf4j

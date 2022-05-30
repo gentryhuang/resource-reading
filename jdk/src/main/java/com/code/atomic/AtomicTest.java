@@ -8,9 +8,6 @@ import java.util.concurrent.atomic.AtomicStampedReference;
 /**
  * AtomicTest
  *
- * @author <a href="mailto:libao.huang@yunhutech.com">shunhua</a>
- * @since 2021/09/26
- * <p>
  * desc：
  */
 public class AtomicTest {

@@ -5,9 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * RentalHouseServiceImpl
  *
- * @author <a href="mailto:libao.huang@yunhutech.com">shunhua</a>
- * @since 2021/01/05
- * <p>
  * desc：
  */
 @Slf4j

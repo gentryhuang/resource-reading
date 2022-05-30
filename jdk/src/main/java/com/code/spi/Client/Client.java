@@ -9,9 +9,6 @@ import java.util.ServiceLoader;
 /**
  * Client
  *
- * @author <a href="mailto:libao.huang@yunhutech.com">shunhua</a>
- * @since 2020/10/17
- * <p>
  * desc：
  */
 public class Client {

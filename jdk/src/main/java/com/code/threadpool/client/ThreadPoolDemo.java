@@ -10,10 +10,6 @@ import java.util.concurrent.*;
 
 /**
  * ThreadPoolDemo
- *
- * @author <a href="mailto:libao.huang@yunhutech.com">shunhua</a>
- * @since 2020/11/28
- * <p>
  * desc：
  */
 @Slf4j

@@ -6,9 +6,6 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * Print
  *
- * @author <a href="mailto:libao.huang@yunhutech.com">shunhua</a>
- * @since 2020/12/27
- * <p>
  * desc：
  */
 public class Print {

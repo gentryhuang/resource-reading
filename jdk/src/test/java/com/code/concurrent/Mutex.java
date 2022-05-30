@@ -5,9 +5,6 @@ import java.util.concurrent.locks.AbstractQueuedSynchronizer;
 /**
  * Mutex
  *
- * @author <a href="mailto:libao.huang@yunhutech.com">shunhua</a>
- * @since 2021/08/14
- * <p>
  * desc：
  */
 

@@ -8,9 +8,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * ThreadMock
  *
- * @author <a href="mailto:libao.huang@yunhutech.com">shunhua</a>
- * @since 2020/12/05
- * <p>
  * desc：
  */
 @Slf4j

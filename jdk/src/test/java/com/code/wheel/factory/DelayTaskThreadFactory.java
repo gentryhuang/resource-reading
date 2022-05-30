@@ -6,9 +6,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * DelayTaskThreadFactory
  *
- * @author <a href="mailto:libao.huang@yunhutech.com">shunhua</a>
- * @since 2021/07/23
- * <p>
  * desc：
  */
 public class DelayTaskThreadFactory implements ThreadFactory {

@@ -4,9 +4,6 @@ package com.code.annotation;
 
 /**
  * UsedAnnotation
- *
- * @author <a href="mailto:libao.huang@yunhutech.com">shunhua</a>
- * @since 2020/12/31
  * <p>
  * desc：
  */

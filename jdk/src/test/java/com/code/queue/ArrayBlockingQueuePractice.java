@@ -6,9 +6,6 @@ import java.util.Collection;
 /**
  * ArrayBlockingQueuePractice
  *
- * @author <a href="mailto:libao.huang@yunhutech.com">shunhua</a>
- * @since 2022/05/05
- * <p>
  * desc：
  */
 public class ArrayBlockingQueuePractice {

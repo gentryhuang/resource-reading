@@ -6,9 +6,6 @@ import java.util.concurrent.Executors;
 /**
  * ThreadPoolException
  *
- * @author <a href="mailto:libao.huang@yunhutech.com">shunhua</a>
- * @since 2020/12/24
- * <p>
  * desc：
  */
 public class ThreadPoolException {

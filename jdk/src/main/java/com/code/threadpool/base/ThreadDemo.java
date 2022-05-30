@@ -5,9 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * ThreadDemo
  *
- * @author <a href="mailto:libao.huang@yunhutech.com">shunhua</a>
- * @since 2020/11/20
- * <p>
  * desc：
  */
 @Slf4j

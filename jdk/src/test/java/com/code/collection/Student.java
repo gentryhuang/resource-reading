@@ -3,9 +3,6 @@ package com.code.collection;
 /**
  * Student
  *
- * @author <a href="mailto:libao.huang@yunhutech.com">shunhua</a>
- * @since 2021/08/05
- * <p>
  * desc：
  */
 public class Student {

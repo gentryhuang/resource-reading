@@ -6,9 +6,6 @@ import io.netty.util.TimerTask;
 /**
  * DelayTask
  *
- * @author <a href="mailto:libao.huang@yunhutech.com">shunhua</a>
- * @since 2021/07/23
- * <p>
  * desc：
  */
 public class DelayTask implements TimerTask {

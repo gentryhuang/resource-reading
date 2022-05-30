@@ -7,9 +7,6 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * Test
  *
- * @author <a href="mailto:libao.huang@yunhutech.com">shunhua</a>
- * @since 2020/09/26
- * <p>
  * desc：
  */
 public class Client {

@@ -10,9 +10,6 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * ConditionDemo
  *
- * @author <a href="mailto:libao.huang@yunhutech.com">shunhua</a>
- * @since 2020/12/26
- * <p>
  * desc：
  */
 public class ConditionDemo {

@@ -6,9 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * Fruit
  *
- * @author <a href="mailto:libao.huang@yunhutech.com">shunhua</a>
- * @since 2021/08/26
- * <p>
  * desc：
  */
 @Data

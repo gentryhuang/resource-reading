@@ -10,9 +10,6 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * BoundedBuffer
  *
- * @author <a href="mailto:libao.huang@yunhutech.com">shunhua</a>
- * @since 2020/12/27
- * <p>
  * desc：
  */
 class BoundedBuffer {

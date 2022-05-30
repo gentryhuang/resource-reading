@@ -6,9 +6,6 @@ import java.util.TimerTask;
 /**
  * TimerClient
  *
- * @author <a href="mailto:libao.huang@yunhutech.com">shunhua</a>
- * @since 2021/07/24
- * <p>
  * desc：
  */
 public class TimerClient {

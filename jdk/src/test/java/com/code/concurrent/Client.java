@@ -9,9 +9,6 @@ import java.lang.ref.WeakReference;
 /**
  * com.code.mixture.Client
  *
- * @author <a href="mailto:libao.huang@yunhutech.com">shunhua</a>
- * @since 2021/08/26
- * <p>
  * desc：
  */
 @Slf4j

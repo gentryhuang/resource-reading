@@ -8,9 +8,6 @@ import java.util.concurrent.TimeUnit;
 /**
  * DelayTaskClockWheel
  *
- * @author <a href="mailto:libao.huang@yunhutech.com">shunhua</a>
- * @since 2021/07/23
- * <p>
  * desc：
  */
 public class DelayTaskClockWheel {
