@@ -68,4 +68,12 @@ public class Client {
 
 
     }
+
+
+    class Value{
+        public volatile long value;
+        public long f1,f2,f3,f4,f5;
+    }
+
+
 }

@@ -73,22 +73,38 @@ public class LongAdder extends Striped64 implements Serializable {
 
     /**
      * Creates a new adder with initial sum of zero.
+     *
+     * 创建一个初始和为零的新加法器。
      */
     public LongAdder() {
     }
 
     /**
      * Adds the given value.
+     * 计数给定的值
      *
      * @param x the value to add
      */
     public void add(long x) {
         Cell[] as; long b, v; int m; Cell a;
+
+        // 1 cells 不为空，说明出现过竞争，cells 已经创建
+        // 2 CAS 操作基础计数器 base 失败，说明出现了竞争
+        // PS: cells 数组为延迟加载，只有在 CAS 更新 base 失败的情况下才会初始化；即没有竞争时操作的是 base 值，发生竞争时 cells 才起作用
         if ((as = cells) != null || !casBase(b = base, b + x)) {
+
+            // true 表示当前有竞争；false 表示没有竞争，多个线程映射到了同一个 Cell ，可能需要扩容
             boolean uncontended = true;
+
+            // 1 cells 为空，说明出现竞争，是由于 CAS 操作基础计数器 base 失败才执行到这里
+            // 2 当前线程映射的 Cell 为空，说明当前线程还没有对应的 Cell，初始化一个 Cell
+            // 3 更新当前线程映射的 Cell 失败，说明其它线程也映射到了这个 Cell，表明竞争激烈
             if (as == null || (m = as.length - 1) < 0 ||
+                    // getProbe() 方法返回的是线程中的 threadLocalRandomProbe 字段，
+                    // 它是通过随机数生成的一个值，对于一个确定的线程，这个值是固定的，除非刻意修改它
                     (a = as[getProbe() & m]) == null ||
                     !(uncontended = a.cas(v = a.value, v + x)))
+
                 longAccumulate(x, null, uncontended);
         }
     }
@@ -114,17 +130,25 @@ public class LongAdder extends Striped64 implements Serializable {
      * occur while the sum is being calculated might not be
      * incorporated.
      *
+     * 获取 LongAdder 中累加的值的大小，包含两部分
+     *
      * @return the sum
      */
     public long sum() {
         Cell[] as = cells; Cell a;
+
+        // 初始值为基础计数器的值
         long sum = base;
+
+        // 如果 cells 不为空，则统计每个计数单元中的值
         if (as != null) {
             for (int i = 0; i < as.length; ++i) {
                 if ((a = as[i]) != null)
                     sum += a.value;
             }
         }
+
+        // 返回 sum
         return sum;
     }
 
