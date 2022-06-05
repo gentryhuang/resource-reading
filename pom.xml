@@ -11,6 +11,7 @@
     <modules>
         <module>jdk</module>
         <module>annotation</module>
+        <module>jvm</module>
     </modules>
 
     <properties>
