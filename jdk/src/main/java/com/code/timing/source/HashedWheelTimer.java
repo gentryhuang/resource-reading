@@ -490,7 +490,7 @@ public class HashedWheelTimer implements Timer {
         /* 将任务添加到队列中，该队列将在下一个 tick 时进行处理，在处理过程中，所有排队的 HashedWheelTimeout 将被添加到正确的 HashedWheelBucket 中 */
 
         // 4 deadline 是一个相对时间，相对于工作线程启动时间。
-        // 注意，该值作为延时任务触发的时间，后续流程虽然会判断，但是貌似用处不大。因为任务触发是跟着 tick 走的
+        // 在执行任务时会判断
         long deadline = System.nanoTime() + unit.toNanos(delay) - startTime;
 
         // Guard against overflow.
@@ -642,7 +642,7 @@ public class HashedWheelTimer implements Timer {
                 int stopIndex = (int) (ticks & mask);
                 HashedWheelBucket bucket = wheel[stopIndex];
 
-                // 单个 bucket 是由 HashedWheelBucket 实例组成的一个链表，单个线程不存在并发
+                // 单个 bucket 是由 HashedWheelTimeout 实例组成的一个链表，单个线程不存在并发
                 bucket.addTimeout(timeout);
             }
         }

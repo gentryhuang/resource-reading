@@ -596,6 +596,7 @@ public abstract class AbstractQueuedSynchronizer
             }
 
             // 检查h是否仍然是head，如果不是的话需要再进行循环。
+            // 由 unparkSuccessor 唤醒的节点调用 setHeadAndPropagate 方法可能执行较快，已经占领了 head
             if (h == head)                   // loop if head changed
                 break;
         }

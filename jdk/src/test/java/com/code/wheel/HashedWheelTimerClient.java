@@ -30,7 +30,7 @@ public class HashedWheelTimerClient {
         // 创建 HashedWheelTimeout 对象，并将该对象放入任务队列中，等待被加入到 Hash 轮中
         Timeout timceout = timer.newTimeout(timerTask, 1, TimeUnit.SECONDS);
 
-        timer.stop();
+        System.out.println(TimeUnit.MILLISECONDS.toNanos(1));
 
     }
 }
