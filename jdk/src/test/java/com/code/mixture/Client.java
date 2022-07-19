@@ -3,6 +3,8 @@ package com.code.mixture;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 /**
  * com.code.mixture.Client
@@ -66,14 +68,27 @@ public class Client {
             System.out.println(user1 == user2);
         }
 
+    }
+
+    @Test
+    public void test1() throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException, InstantiationException {
+
+        System.out.println(User.a);
+
+        Class<?> aClass = Class.forName("com.code.mixture.User");
+        Method setA = aClass.getDeclaredMethod("setA", int.class);
+        setA.invoke(aClass,2);
+
+        User o = (User)aClass.newInstance();
+
+
+
+        System.out.println(User.a);
+
+
 
     }
 
-
-    class Value{
-        public volatile long value;
-        public long f1,f2,f3,f4,f5;
-    }
 
 
 }
