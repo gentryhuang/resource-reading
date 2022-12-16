@@ -15,7 +15,7 @@
     </modules>
 
     <properties>
-        <spring.version>5.1.5.RELEASE</spring.version>
+        <spring.version>5.2.20.RELEASE</spring.version>
         <mybatis.version>3.5.0</mybatis.version>
         <mysql.version>8.0.15</mysql.version>
         <lombok.version>1.18.6</lombok.version>
